@@ -1,8 +1,3 @@
-import java.util.zip.CRC32;
-import java.util.zip.Checksum;
-import java.lang.Object;
-import java.lang.Math;
-
 class PacketGeneratorApp {
   public static void main(String[] args) { 
     PacketGenerator gen = new PacketGenerator(5,4,5,4,5,3,3000,0.1d,0.2d,0.8d);

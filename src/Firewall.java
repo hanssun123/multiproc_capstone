@@ -1,40 +1,20 @@
 class SerialFirewall {
   public static void main(String[] args) {
-    final int numPackets = Integer.parseInt(args[0]);    
-    final int numSources = Integer.parseInt(args[1]);
-    final long mean = Long.parseLong(args[2]);
-    final boolean uniformFlag = Boolean.parseBoolean(args[3]);
-    final short experimentNumber = Short.parseShort(args[4]);
-    long fingerprint = 0;
     StopWatch timer = new StopWatch();
-    PacketSource pkt = new PacketSource(mean, numSources, experimentNumber);
-    Fingerprint residue = new Fingerprint();
     
-    if( uniformFlag == true ) {
-      timer.startTimer();
-      for( int i = 0; i < numSources; i++ ) {
-        for( int j = 0; j < numPackets; j++ ) {
-          Packet tmp = pkt.getUniformPacket(i);
-          fingerprint += residue.getFingerprint(tmp.iterations, tmp.seed);
-        }
-      }
-      timer.stopTimer();
+    timer.startTimer();
+    PacketGenerator gen = new PacketGenerator(5,4,5,4,5,3,3000,0.1d,0.2d,0.8d);
+    for( int i = 0; i < 200; i++ ) {
+      Packet pkt = gen.getPacket();
+      pkt.printPacket();
     }
-    else {
-      timer.startTimer();
-      for( int i = 0; i < numSources; i++ ) {
-        for( int j = 0; j < numPackets; j++ ) {
-          Packet tmp = pkt.getExponentialPacket(i);
-          fingerprint += residue.getFingerprint(tmp.iterations, tmp.seed);
-        }
-      }
-      timer.stopTimer();
-    }
+    timer.stopTimer();
+    
     System.out.println(timer.getElapsedTime());
   }
 }
 
-
+/*
 class SerialQueueFirewall {
   public static void main(String[] args) {
     final int numPackets = Integer.parseInt(args[0]);    
@@ -113,3 +93,4 @@ class ParallelFirewall {
     System.out.println(timer.getElapsedTime());
   }
 }
+*/
