@@ -114,7 +114,7 @@ class PacketStruct {
 
 class AddressPairTestApp {
   public static void main(String[] args) {
-    AddressPairGenerator gen = new AddressPairGenerator(3, 5, 2.0d);
+    AddressPairGenerator gen = new AddressPairGenerator(3,4, 2.0d);
     UniformGenerator uniGen = new UniformGenerator();
     for( int i = 0; i < 20; i++ ) {
       AddressPair pair = gen.getPair();
@@ -158,8 +158,9 @@ class AddressPairGenerator {
       dest = ( dest + mask ) & mask; // he's walking backward...
       destResidue = destResidue - 1.0d;
     }
-    return new AddressPair(uniGen.mangle(1+((source+expGen.getRand()) & mask)),
-                          uniGen.mangle(1+((dest+expGen.getRand()) & mask)));
+    
+    return new AddressPair(1+((source+expGen.getRand()) & mask), 
+    					   1+((dest+expGen.getRand()) & mask));
   }
 }
 
