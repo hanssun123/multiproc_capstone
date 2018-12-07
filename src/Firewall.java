@@ -1,16 +1,36 @@
-class SerialFirewall {
+import java.util.Map;
+
+class SerialFirewallTester {
   public static void main(String[] args) {
     StopWatch timer = new StopWatch();
     
     timer.startTimer();
-    PacketGenerator gen = new PacketGenerator(5,4,5,4,5,3,3000,0.1d,0.2d,0.8d);
-    for( int i = 0; i < 200; i++ ) {
+    int numLogAddress = 4;
+    // OLD :PacketGenerator gen = new PacketGenerator(5,4,5,4,5,3,100000,0.1d,0.2d,1);
+    PacketGenerator gen = new PacketGenerator(numLogAddress,4,5,4,5,3,3000,0.4d,0.6d,1);
+    SerialFirewall firewall = new SerialFirewall();
+    
+    // Process config packets first.
+    int A = (int) Math.pow(numLogAddress, 1.5);
+    
+    for(int i=0; i < A; i++) {
+    	Packet pkt = gen.getConfigPacket();
+    	firewall.handlePacket(pkt);
+    }
+    
+    
+    for( int i = 0; i < 10; i++ ) {
       Packet pkt = gen.getPacket();
       pkt.printPacket();
+      firewall.handlePacket(pkt);
     }
     timer.stopTimer();
     
-    System.out.println(timer.getElapsedTime());
+    Map<Long, Integer> histogram = firewall.getHistogram();
+    
+    System.out.println(histogram.toString());
+    
+    System.out.println("Time: " +  timer.getElapsedTime());
   }
 }
 
