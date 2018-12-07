@@ -6,15 +6,15 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import map.MyMap;
 
 public class ParallelFirewallPools {
 
-	// Constants
-	int MAX_T = 2;
-
-	// Permissions.
-	private ConcurrentHashMap<Integer, Boolean> canSend;
-	private ConcurrentHashMap<Integer, Set<Integer>> canReceiveFrom;
+	// Permissions.	
+	MyMap<Integer, Boolean> canSend;
+	MyMap<Integer, Set<Integer>> canReceiveFrom;
 
 	// Thread pools.
 	private ExecutorService configPool;
@@ -23,18 +23,18 @@ public class ParallelFirewallPools {
 	// Histogram of results.
 	private ConcurrentHashMap<Long, Integer> histogram;
 
-	public ParallelFirewallPools() {
-		// Instantiate permissions:
-		this.canSend = new ConcurrentHashMap<>(); // PNG.
-		this.canReceiveFrom = new ConcurrentHashMap<>(); // R.
+	public ParallelFirewallPools(int numThreads, MyMap<Integer, Boolean> canSend,
+			MyMap<Integer, Set<Integer>> canReceiveFrom) {
+		
+		// Set permissions:
+		this.canSend = canSend; // PNG.
+		this.canReceiveFrom = canReceiveFrom; // R.
 
 		// Instantiate thread pools:
-		this.configPool = Executors.newFixedThreadPool(MAX_T);
-		this.dataPool = Executors.newFixedThreadPool(MAX_T);
+		this.configPool = Executors.newFixedThreadPool(numThreads);
+		this.dataPool = Executors.newFixedThreadPool(numThreads);
 
 		this.histogram = new ConcurrentHashMap<>();
-
-		// Instantiate threads / register in work maps.
 	}
 
 	// Dispatcher Thread
@@ -53,6 +53,17 @@ public class ParallelFirewallPools {
 		}
 	}
 
+	public void shutdown() {
+		this.configPool.shutdown();
+		this.dataPool.shutdown();
+		try {
+			this.configPool.awaitTermination(100000, TimeUnit.MILLISECONDS);
+			this.dataPool.awaitTermination(100000, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException exception) {
+			System.out.println("Timed out while waiting for pools to finish");
+		}
+	}
+
 	public Map<Long, Integer> getHistogram() {
 		return this.histogram;
 	}
@@ -66,7 +77,6 @@ public class ParallelFirewallPools {
 
 		public void run() {
 			// Update permissions.
-			// System.out.println("Handling config packet for address: " + pkt.config.address);
 
 			// Update canSend permissions with personaNonGrata.
 			canSend.put(pkt.config.address, pkt.config.personaNonGrata);
@@ -86,8 +96,6 @@ public class ParallelFirewallPools {
 				}
 			}
 			canReceiveFrom.put(pkt.config.address, oldPermissions);
-			// System.out.println("Sender can send: " + pkt.config.personaNonGrata);
-			// System.out.println("Can receive from permissions: " + oldPermissions.toString());
 		}
 
 	}
@@ -117,7 +125,6 @@ public class ParallelFirewallPools {
 			}
 
 			// --- Successfully passed through permissions check! ---
-			// System.out.println("Passed permissions!");
 
 			// Histogram the checksum.
 			Fingerprint fingerprint = new Fingerprint();
