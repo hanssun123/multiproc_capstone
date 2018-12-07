@@ -1,116 +1,248 @@
-import java.util.Map;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import map.MyMap;
+import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
+
+class Main {
+	public static void main(String[] args) {		
+		StopWatch stopwatch = new StopWatch();
+		stopwatch.startTimer();
+		
+		int numPG = 8;
+		int numThreadTypes = 5; // 1, 2, 4, 8, 16
+		int numMaps = 5; // Change to 6.
+		int numPackets = 10000;
+		int numTrials = 10;
+		
+		SerialFirewallTester serialTester = new SerialFirewallTester();
+		ParallelFirewallTester parallelTester = new ParallelFirewallTester();
+		
+		// List of rows to print to file later on.
+		List<String> rows = new ArrayList<>();
+		rows.add(getHeader());
+
+		for (int pgIter = 0; pgIter < numPG; pgIter++) {
+			for (int mapIter = 0; mapIter < numMaps; mapIter++) {
+				if(mapIter == numMaps-1) {
+					// Run sequential
+					long totalTime = 0;
+					for (int trial = 0; trial < numTrials; trial++) {
+						long time = serialTester.test(numPackets, generatePG(pgIter));
+						totalTime += time;
+					}
+					// Finished trial.
+					long avgTime = totalTime / numTrials;
+					rows.add(infoToRow(pgIter, "serial", 1, numPackets, avgTime));
+				
+				} else {
+					// Run parallel
+					for (int numThreadsIter = 0; numThreadsIter < numThreadTypes; numThreadsIter++) {
+						long totalTime = 0;
+						for (int trial = 0; trial < numTrials; trial++) {
+							// Instantiate firewalls.
+							long time = parallelTester.test(numPackets,
+															getNumThreads(numThreadsIter), 
+															generateCanSend(mapIter),
+															generateCanReceiveFrom(mapIter),
+															generatePG(pgIter));
+							totalTime += time;
+						}
+						// Finished trial.
+						long avgTime = totalTime / numTrials;
+						rows.add(infoToRow(pgIter, getMapType(mapIter), getNumThreads(numThreadsIter), numPackets, avgTime));
+					}
+				}
+			}
+			rows.add("-,-,-,-,- \n");
+		}
+
+		try {
+
+			FileWriter fileWriter = new FileWriter("/Users/tristinfalk-lefay/Desktop/testfile.csv");
+			PrintWriter printWriter = new PrintWriter(fileWriter);
+			for(String row : rows) {
+				printWriter.print(row);
+			}
+			printWriter.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		stopwatch.stopTimer();
+		System.out.println("Total time to process: " + stopwatch.getElapsedTime());
+		// parallel.test(numPackets);
+	}
+
+	private static String infoToRow(int pgType, String mapType, int numThreads, int numPackets, long time) {
+		return "" + pgType + ", " + mapType + ", " + numThreads + ", " + numPackets + ", " + time + "\n";
+	}
+
+	private static String getHeader() {
+		return "pg_type, map_type, num_threads, num_packets, time \n";
+	}
+
+	private static MyMap<Integer, Boolean> generateCanSend(int iteration) {
+		switch (iteration) {
+		case 0:
+			return new bookMaps.CoarseHashMap<Integer, Boolean>(1000);
+		case 1:
+			return new bookMaps.StripedHashMap<Integer, Boolean>(1000);
+		case 2:
+			return new javaMaps.CoarseGrainedMap<Integer, Boolean>();
+		case 3:
+			return new javaMaps.ConcurrentMap<Integer, Boolean>();
+		case 4:
+			// ADD IN THE NEW MAP
+		default:
+			// Do nothing;
+		}
+		return null;
+	}
+
+	private static MyMap<Integer, Set<Integer>> generateCanReceiveFrom(int iteration) {
+		switch (iteration) {
+		case 0:
+			return new bookMaps.CoarseHashMap<Integer, Set<Integer>>(1000);
+		case 1:
+			return new bookMaps.StripedHashMap<Integer, Set<Integer>>(1000);
+		case 2:
+			return new javaMaps.CoarseGrainedMap<Integer, Set<Integer>>();
+		case 3:
+			return new javaMaps.ConcurrentMap<Integer, Set<Integer>>();
+		case 4:
+			// ADD IN THE NEW MAP
+		default:
+			// Do nothing;
+		}
+		return null;
+	}
+
+	private static String getMapType(int iteration) {
+		switch (iteration) {
+		case 0:
+			return "book_coarse";
+		case 1:
+			return "book_striped";
+		case 2:
+			return "java_coarse";
+		case 3:
+			return "java_concurrent";
+		case 4:
+			// ADD IN THE NEW MAP
+		default:
+			return "Unknown";
+		}
+	}
+
+	private static PacketGenerator generatePG(int iteration) {
+		switch (iteration) {
+		case 0:
+			return new PacketGenerator(11, 12, 5, 1, 3, 3, 3822, 0.24, 0.04, 0.96);
+		case 1:
+			return new PacketGenerator(12, 10, 1, 3, 3, 1, 2644, 0.11, 0.09, 0.92);
+		case 2:
+			return new PacketGenerator(12, 10, 4, 3, 6, 2, 1304, 0.1, 0.03, 0.9);
+		case 3:
+			return new PacketGenerator(14, 10, 5, 5, 6, 2, 315, 0.08, 0.05, 0.9);
+		case 4:
+			return new PacketGenerator(15, 14, 9, 16, 7, 10, 4007, 0.02, 0.1, 0.84);
+		case 5:
+			return new PacketGenerator(15, 15, 9, 10, 9, 9, 7125, 0.01, 0.2, 0.77);
+		case 6:
+			return new PacketGenerator(15, 15, 10, 13, 8, 10, 5328, 0.04, 0.18, 0.8);
+		case 7:
+			return new PacketGenerator(16, 14, 15, 12, 9, 5, 8840, 0.04, 0.19, 0.76);
+		default:
+			// Do nothing;
+		}
+		return null;
+	}
+
+	private static int getNumThreads(int iteration) {
+		switch (iteration) {
+		case 0:
+			return 1;
+		case 1:
+			return 2;
+		case 2:
+			return 4;
+		case 3:
+			return 8;
+		case 4:
+			return 16;
+		default:
+			return 1;
+		}
+	}
+}
 
 class SerialFirewallTester {
-  public static void main(String[] args) {
-    StopWatch timer = new StopWatch();
-    
-    timer.startTimer();
-    int numLogAddress = 4;
-    // OLD :PacketGenerator gen = new PacketGenerator(5,4,5,4,5,3,100000,0.1d,0.2d,1);
-    PacketGenerator gen = new PacketGenerator(numLogAddress,4,5,4,5,3,3000,0.4d,0.6d,1);
-    SerialFirewall firewall = new SerialFirewall();
-    
-    // Process config packets first.
-    int A = (int) Math.pow(numLogAddress, 1.5);
-    
-    for(int i=0; i < A; i++) {
-    	Packet pkt = gen.getConfigPacket();
-    	firewall.handlePacket(pkt);
-    }
-    
-    
-    for( int i = 0; i < 10; i++ ) {
-      Packet pkt = gen.getPacket();
-      pkt.printPacket();
-      firewall.handlePacket(pkt);
-    }
-    timer.stopTimer();
-    
-    Map<Long, Integer> histogram = firewall.getHistogram();
-    
-    System.out.println(histogram.toString());
-    
-    System.out.println("Time: " +  timer.getElapsedTime());
-  }
+	public long test(int numPackets, PacketGenerator gen) {
+		System.out.println("Running Serial Firewall Tester");
+		StopWatch stopwatch = new StopWatch();
+		stopwatch.startTimer();
+
+		SerialFirewall firewall = new SerialFirewall();
+
+		// Process config packets first.
+		int numLogAddress = 4;
+		int A = (int) Math.pow(numLogAddress, 1.5);
+
+		for (int i = 0; i < A; i++) {
+			Packet pkt = gen.getConfigPacket();
+			firewall.handlePacket(pkt);
+		}
+
+		for (int i = 0; i < numPackets; i++) {
+			Packet pkt = gen.getPacket();
+			firewall.handlePacket(pkt);
+		}
+
+		stopwatch.stopTimer();
+		System.out.println("Time to process: " + stopwatch.getElapsedTime());
+		return stopwatch.getElapsedTime();
+	}
 }
 
-/*
-class SerialQueueFirewall {
-  public static void main(String[] args) {
-    final int numPackets = Integer.parseInt(args[0]);    
-    final int numSources = Integer.parseInt(args[1]);
-    final long mean = Long.parseLong(args[2]);
-    final boolean uniformFlag = Boolean.parseBoolean(args[3]);
-    final int queueDepth = Integer.parseInt(args[4]);
-    final short experimentNumber = Short.parseShort(args[5]);
-    StopWatch timer = new StopWatch();
-    PacketSource pkt = new PacketSource(mean, numSources, experimentNumber);
-    Fingerprint residue = new Fingerprint();
-    // ...
-    // allocate and initialize bank of numSources Lamport queues
-    // each with depth queueDepth
-    // they should throw FullException and EmptyException upon those conditions
-    // ...
-        
-    long fingerprint = 0;
-    timer.startTimer();
-    for( int i = 0; i < numSources; i++ ) {
-      for( int j = 0; j < numPackets; j++ ) {
-        Packet tmp;
-        if( uniformFlag == true )
-          tmp = pkt.getUniformPacket(i);
-        else
-          tmp = pkt.getExponentialPacket(i);
-        try {
-          // ...
-          // enqueue tmp in the ith Lamport queue
-          // ...
-        } catch (FullException e) {;}
-        try {
-          // ...
-          // dequeue the next packet from the ith Lamport queue into tmp
-          // ...
-        } catch (EmptyException e) {;}
-        fingerprint += residue.getFingerprint(tmp.iterations, tmp.seed);
-      }
-    }
-    timer.stopTimer();
-    System.out.println(timer.getElapsedTime());
-  }
-}
+class ParallelFirewallTester {
+	public long test(int numPackets, int numThreads, MyMap<Integer, Boolean> canSend,
+			MyMap<Integer, Set<Integer>> canReceiveFrom, PacketGenerator gen) {
+		System.out.println("Running Parallel Firewall Tester");
+		StopWatch stopwatch = new StopWatch();
+		stopwatch.startTimer();
 
+		int numLogAddress = 4;
+		ParallelFirewallPools firewall = new ParallelFirewallPools(numThreads, canSend, canReceiveFrom);
 
-class ParallelFirewall {
-  public static void main(String[] args) {
-    final int numPackets = Integer.parseInt(args[0]);    
-    final int numSources = Integer.parseInt(args[1]);
-    final long mean = Long.parseLong(args[2]);
-    final boolean uniformFlag = Boolean.parseBoolean(args[3]);
-    final int queueDepth = Integer.parseInt(args[4]);
-    final short experimentNumber = Short.parseShort(args[5]);
-    StopWatch timer = new StopWatch();
-    PacketSource pkt = new PacketSource(mean, numSources, experimentNumber);
-    // ...
-    // Allocate and initialize bank of Lamport queues, as in SerialQueueFirewall
-    // ...
-    // Allocate and initialize a Dispatcher class implementing Runnable
-    // and a corresponding Dispatcher Thread
-    // ...
-    // Allocate and initialize an array of Worker classes, implementing Runnable
-    // and the corresponding Worker Threads
-    // ...
-    // Call start() for each worker
-    // ...
-    timer.startTimer();
-    // ...
-    // Call start() for the Dispatcher thread
-    // ...
-    // Call join() for Dispatcher thread
-    // ...
-    // Call join() for each Worker thread
-    // ...
-    timer.stopTimer();
-    System.out.println(timer.getElapsedTime());
-  }
+		// Process config packets first.
+		int A = (int) Math.pow(numLogAddress, 1.5);
+
+		for (int i = 0; i < A; i++) {
+			Packet pkt = gen.getConfigPacket();
+			firewall.handlePacket(pkt);
+		}
+
+		StopWatch loopWatch = new StopWatch();
+		loopWatch.startTimer();
+		for (int i = 0; i < numPackets; i++) {
+			Packet pkt = gen.getPacket();
+			firewall.handlePacket(pkt);
+		}
+		loopWatch.stopTimer();
+		// System.out.println("Time to distribute work: " + loopWatch.getElapsedTime());
+
+		StopWatch shutwatch = new StopWatch();
+		shutwatch.startTimer();
+		// System.out.println("Shutting down...");
+		firewall.shutdown();
+		// System.out.println("Shut down.");
+		shutwatch.stopTimer();
+		// System.out.println("Time to shutdown: " + shutwatch.getElapsedTime());
+
+		stopwatch.stopTimer();
+		System.out.println("Total time to process: " + stopwatch.getElapsedTime());
+		return stopwatch.getElapsedTime();
+	}
 }
-*/

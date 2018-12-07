@@ -12,8 +12,8 @@ public class SerialFirewall {
 	
 	public SerialFirewall() {
 		// Instantiate permissions.
-		this.canSend = new HashMap<>();
-		this.canReceiveFrom = new HashMap<>();
+		this.canSend = new HashMap<>(); // PNG.
+		this.canReceiveFrom = new HashMap<>(); // R.
 		this.histogram = new HashMap<>();
 	}
 	
@@ -50,9 +50,10 @@ public class SerialFirewall {
 			}
 		}
 		this.canReceiveFrom.put(pkt.config.address, oldPermissions);
-		System.out.println("New permissions: " + oldPermissions.toString());
 	}
 	
+	
+	// Make this a thread pool.
 	private void handleDataPacket(Packet pkt) {
 		// Check access control.
 		
@@ -70,9 +71,7 @@ public class SerialFirewall {
 			return;
 		}
 		
-		// --- Successfully passed through permissions check! --- 
-		System.out.println("Passed permissions!");
-		
+		// --- Successfully passed through permissions check! --- 		
 		// Histogram the checksum.
 		Fingerprint fingerprint = new Fingerprint();
 		long checksum = fingerprint.getFingerprint(pkt.body.iterations, pkt.body.seed);
