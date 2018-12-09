@@ -12,7 +12,7 @@ class Main {
 		
 		int numPG = 8;
 		int numThreadTypes = 5; // 1, 2, 4, 8, 16
-		int numMaps = 5; // Change to 6.
+		int numMaps = 6; // Change to 6.
 		int numPackets = 10000;
 		int numTrials = 10;
 		
@@ -94,7 +94,7 @@ class Main {
 		case 3:
 			return new javaMaps.ConcurrentMap<Integer, Boolean>();
 		case 4:
-			// ADD IN THE NEW MAP
+			return new javaMaps.NonBlockingFastMap<Integer, Boolean>();
 		default:
 			// Do nothing;
 		}
@@ -112,7 +112,7 @@ class Main {
 		case 3:
 			return new javaMaps.ConcurrentMap<Integer, Set<Integer>>();
 		case 4:
-			// ADD IN THE NEW MAP
+			return new javaMaps.NonBlockingFastMap<Integer, Set<Integer>>();
 		default:
 			// Do nothing;
 		}
@@ -130,7 +130,7 @@ class Main {
 		case 3:
 			return "java_concurrent";
 		case 4:
-			// ADD IN THE NEW MAP
+			return "github_nonblocking";
 		default:
 			return "Unknown";
 		}
