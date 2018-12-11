@@ -23,6 +23,7 @@ class PacketGenerator {
   int lastConfigAddress;
   int numConfigPackets = 0;
   int configAddressMask;
+  int numAddressLogSave;
   PacketStruct[] trains;
   public PacketGenerator(
     int numAddressesLog,
@@ -35,7 +36,8 @@ class PacketGenerator {
     double configFraction,
     double pngFraction,
     double acceptingFraction ) {
-    this.expGen = new ExponentialGenerator((1.0d/configFraction)-1);
+    this.numAddressLogSave = numAddressesLog;
+	this.expGen = new ExponentialGenerator((1.0d/configFraction)-1);
     this.pairGen = new AddressPairGenerator(meanCommsPerAddress, 
       numAddressesLog, (double) meanWindow);
     this.mask = (1 << numTrainsLog) - 1;

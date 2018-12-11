@@ -8,8 +8,8 @@ public class ConcurrentMap<K, V> implements MyMap<K,V> {
 
 	private ConcurrentHashMap<K, V> internalData;
 	
-	public ConcurrentMap() {
-		internalData = new ConcurrentHashMap<>();
+	public ConcurrentMap(int cap, float load, int numThreads) {
+		internalData = new ConcurrentHashMap<>(cap, load, numThreads);
 	}
 	
 	public V put(K key, V value) {

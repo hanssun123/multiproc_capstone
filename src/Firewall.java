@@ -7,23 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 class Main {
-	public static void main(String[] args) {		
-		
-		/*
-		ParallelFirewallTester parallelTester = new ParallelFirewallTester();
-		SerialFirewallTester serialTester = new SerialFirewallTester();
-		PacketGenerator currGenerator;
-		MyMap<Integer, Boolean> currCanSend;
-		MyMap<Integer, Set<Integer>> currCanRecvFrom;
-		currGenerator = generatePG(3);
-		currCanSend = generateCanSend(1);
-		currCanRecvFrom = generateCanReceiveFrom(1);
-		parallelTester.test(10000000, 4, currCanSend, currCanRecvFrom, currGenerator);
-		currGenerator = generatePG(3);
-		serialTester.test(10000000, currGenerator);
-		*/
-		
-		
+	public static void main(String[] args) {			
 		StopWatch stopwatch = new StopWatch();
 		stopwatch.startTimer();
 		
@@ -66,11 +50,14 @@ class Main {
 						long totalTime = 0;
 						for (int trial = 0; trial < numTrials; trial++) {
 							currGenerator = generatePG(pgIter);
-							currCanSend = generateCanSend(mapIter);
-							currCanRecvFrom = generateCanReceiveFrom(mapIter);
+							int capacity = (int) Math.pow(2, currGenerator.numAddressLogSave);
+							int numThreads = getNumThreads(numThreadsIter);
+							
+							currCanSend = generateCanSend(mapIter, capacity, numThreads);
+							currCanRecvFrom = generateCanReceiveFrom(mapIter, capacity, numThreads);
 							// Instantiate firewalls.
 							long time = parallelTester.test(numPackets,
-															getNumThreads(numThreadsIter), 
+															numThreads, 
 															currCanSend,
 															currCanRecvFrom,
 															currGenerator);
@@ -110,36 +97,38 @@ class Main {
 		return "pg_type, map_type, num_threads, num_packets, time \n";
 	}
 
-	private static MyMap<Integer, Boolean> generateCanSend(int iteration) {
+	private static MyMap<Integer, Boolean> generateCanSend(int iteration, int capacity, int numThreads) {
+		int idealCap = (int) (capacity*1.3);
 		switch (iteration) {
 		case 0:
-			return new bookMaps.CoarseHashMap<Integer, Boolean>(64);
+			return new bookMaps.CoarseHashMap<Integer, Boolean>(idealCap);
 		case 1:
-			return new bookMaps.StripedHashMap<Integer, Boolean>(64);
+			return new bookMaps.StripedHashMap<Integer, Boolean>(idealCap);
 		case 2:
 			return new javaMaps.CoarseGrainedMap<Integer, Boolean>();
 		case 3:
-			return new javaMaps.ConcurrentMap<Integer, Boolean>();
+			return new javaMaps.ConcurrentMap<Integer, Boolean>(idealCap, 1.0f, numThreads);
 		case 4:
-			return new javaMaps.NonBlockingFastMap<Integer, Boolean>();
+			return new javaMaps.NonBlockingFastMap<Integer, Boolean>(idealCap);
 		default:
 			// Do nothing;
 		}
 		return null;
 	}
 
-	private static MyMap<Integer, Set<Integer>> generateCanReceiveFrom(int iteration) {
+	private static MyMap<Integer, Set<Integer>> generateCanReceiveFrom(int iteration, int capacity, int numThreads) {
+		int idealCap = (int) (capacity*1.3);
 		switch (iteration) {
 		case 0:
-			return new bookMaps.CoarseHashMap<Integer, Set<Integer>>(1000);
+			return new bookMaps.CoarseHashMap<Integer, Set<Integer>>(idealCap);
 		case 1:
-			return new bookMaps.StripedHashMap<Integer, Set<Integer>>(1000);
+			return new bookMaps.StripedHashMap<Integer, Set<Integer>>(idealCap);
 		case 2:
 			return new javaMaps.CoarseGrainedMap<Integer, Set<Integer>>();
 		case 3:
-			return new javaMaps.ConcurrentMap<Integer, Set<Integer>>();
+			return new javaMaps.ConcurrentMap<Integer, Set<Integer>>(idealCap, 1.0f, numThreads);
 		case 4:
-			return new javaMaps.NonBlockingFastMap<Integer, Set<Integer>>();
+			return new javaMaps.NonBlockingFastMap<Integer, Set<Integer>>(idealCap);
 		default:
 			// Do nothing;
 		}
@@ -166,21 +155,21 @@ class Main {
 	private static PacketGenerator generatePG(int iteration) {
 		switch (iteration) {
 		case 0:
-			return new PacketGenerator(4, 12, 5, 1, 3, 3, 6000, 0.24, 0.04, 0.96);
+			return new PacketGenerator(11, 12, 5, 1, 3, 3, 6000, 0.24, 0.04, 0.96);
 		case 1:
-			return new PacketGenerator(4, 10, 1, 3, 3, 1, 4000, 0.11, 0.09, 0.92);
+			return new PacketGenerator(12, 10, 1, 3, 3, 1, 4000, 0.11, 0.09, 0.92);
 		case 2:
-			return new PacketGenerator(4, 10, 4, 3, 6, 2, 5000, 0.1, 0.03, 0.9);
+			return new PacketGenerator(12, 10, 4, 3, 6, 2, 5000, 0.1, 0.03, 0.9);
 		case 3:
-			return new PacketGenerator(4, 10, 5, 5, 6, 2, 1000, 0.08, 0.05, 0.9);
+			return new PacketGenerator(14, 10, 5, 5, 6, 2, 1000, 0.08, 0.05, 0.9);
 		case 4:
-			return new PacketGenerator(5, 14, 9, 16, 7, 10, 8000, 0.02, 0.1, 0.84);
+			return new PacketGenerator(15, 14, 9, 16, 7, 10, 8000, 0.02, 0.1, 0.84);
 		case 5:
-			return new PacketGenerator(5, 15, 9, 10, 9, 9, 10000, 0.01, 0.2, 0.77);
+			return new PacketGenerator(15, 15, 9, 10, 9, 9, 10000, 0.01, 0.2, 0.77);
 		case 6:
-			return new PacketGenerator(5, 15, 10, 13, 8, 10, 9000, 0.04, 0.18, 0.8);
+			return new PacketGenerator(15, 15, 10, 13, 8, 10, 9000, 0.04, 0.18, 0.8);
 		case 7:
-			return new PacketGenerator(6, 14, 15, 12, 9, 5, 12000, 0.04, 0.19, 0.76);
+			return new PacketGenerator(16, 14, 15, 12, 9, 5, 12000, 0.04, 0.19, 0.76);
 		default:
 			// Do nothing;
 		}
