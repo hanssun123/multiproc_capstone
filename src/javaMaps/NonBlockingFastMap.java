@@ -8,7 +8,7 @@ public class NonBlockingFastMap<K, V> implements MyMap<K, V>{
 private NonBlockingHashMap<K, V> internalData;
 	
 	public NonBlockingFastMap(int cap) {
-		internalData = new NonBlockingHashMap<>(cap);
+		internalData = new NonBlockingHashMap<>();
 	}
 	
 	public V put(K key, V value) {

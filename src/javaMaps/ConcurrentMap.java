@@ -9,7 +9,7 @@ public class ConcurrentMap<K, V> implements MyMap<K,V> {
 	private ConcurrentHashMap<K, V> internalData;
 	
 	public ConcurrentMap(int cap) {
-		internalData = new ConcurrentHashMap<>(cap);
+		internalData = new ConcurrentHashMap<>();
 	}
 	
 	public V put(K key, V value) {
