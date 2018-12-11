@@ -28,7 +28,7 @@ class Main {
 		List<String> rows = new ArrayList<>();
 		rows.add(getHeader());
 		
-		int pgIter = 3;
+		int pgIter = 4;
 		//for (int pgIter = 0; pgIter < numPG; pgIter++) {
 			for (int mapIter = 0; mapIter < numMaps; mapIter++) {
 				System.out.println(mapIter + " of " + numMaps);
@@ -107,7 +107,7 @@ class Main {
 		case 2:
 			return new javaMaps.CoarseGrainedMap<Integer, Boolean>();
 		case 3:
-			return new javaMaps.ConcurrentMap<Integer, Boolean>(idealCap, 1.0f, numThreads);
+			return new javaMaps.ConcurrentMap<Integer, Boolean>(idealCap, 1.0f, numThreads/2);
 		case 4:
 			return new javaMaps.NonBlockingFastMap<Integer, Boolean>(idealCap);
 		default:
@@ -126,7 +126,7 @@ class Main {
 		case 2:
 			return new javaMaps.CoarseGrainedMap<Integer, Set<Integer>>();
 		case 3:
-			return new javaMaps.ConcurrentMap<Integer, Set<Integer>>(idealCap, 1.0f, numThreads);
+			return new javaMaps.ConcurrentMap<Integer, Set<Integer>>(idealCap, 1.0f, numThreads/2);
 		case 4:
 			return new javaMaps.NonBlockingFastMap<Integer, Set<Integer>>(idealCap);
 		default:

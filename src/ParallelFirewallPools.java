@@ -126,7 +126,12 @@ public class ParallelFirewallPools {
 			// Check access control.
 
 			// Check if sender can send.
-			if (!canSend.containsKey(pkt.header.source) || !canSend.get(pkt.header.source)) {
+			if (!canSend.containsKey(pkt.header.source)) { 
+				// Sender can't send.
+				return;
+			}
+			
+			if(!canSend.get(pkt.header.source)) {
 				// Sender can't send.
 				return;
 			}
