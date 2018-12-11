@@ -43,7 +43,7 @@ class Main {
 		List<String> rows = new ArrayList<>();
 		rows.add(getHeader());
 		
-		int pgIter = 1;
+		int pgIter = 3;
 		//for (int pgIter = 0; pgIter < numPG; pgIter++) {
 			for (int mapIter = 0; mapIter < numMaps; mapIter++) {
 				System.out.println(mapIter + " of " + numMaps);
@@ -260,9 +260,9 @@ class ParallelFirewallTester {
 		}
 		
 		
-
-		stopwatch.stopTimer();
 		firewall.shutdown();
+		stopwatch.stopTimer();
+		
 		System.out.println("Total time to process: " + stopwatch.getElapsedTime());
 		return stopwatch.getElapsedTime();
 	}
