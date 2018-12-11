@@ -1,5 +1,6 @@
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.io.File;
 import map.MyMap;
 import java.util.Set;
 import java.util.ArrayList;
@@ -85,8 +86,8 @@ class Main {
 		//}
 
 		try {
-
-			FileWriter fileWriter = new FileWriter("/Users/tristinfalk-lefay/Desktop/testfile" + pgIter + ".csv");
+			String currDir = new File(".").getCanonicalPath();
+			FileWriter fileWriter = new FileWriter(currDir + "/data/testfile" + pgIter + ".csv");
 			PrintWriter printWriter = new PrintWriter(fileWriter);
 			for(String row : rows) {
 				printWriter.print(row);
@@ -112,9 +113,9 @@ class Main {
 	private static MyMap<Integer, Boolean> generateCanSend(int iteration) {
 		switch (iteration) {
 		case 0:
-			return new bookMaps.CoarseHashMap<Integer, Boolean>(1000);
+			return new bookMaps.CoarseHashMap<Integer, Boolean>(64);
 		case 1:
-			return new bookMaps.StripedHashMap<Integer, Boolean>(1000);
+			return new bookMaps.StripedHashMap<Integer, Boolean>(64);
 		case 2:
 			return new javaMaps.CoarseGrainedMap<Integer, Boolean>();
 		case 3:
@@ -189,17 +190,17 @@ class Main {
 	private static int getNumThreads(int iteration) {
 		switch (iteration) {
 		case 0:
-			return 1;
+			return 3;
 		case 1:
-			return 2;
-		case 2:
 			return 4;
-		case 3:
+		case 2:
 			return 8;
-		case 4:
+		case 3:
 			return 16;
+		case 4:
+			return 32;
 		default:
-			return 1;
+			return 3;
 		}
 	}
 }
@@ -243,7 +244,7 @@ class ParallelFirewallTester {
 		stopwatch.startTimer();
 
 		int numLogAddress = 6;
-		ParallelFirewallPools firewall = new ParallelFirewallPools(numThreads, canSend, canReceiveFrom);
+		ParallelFirewallPools firewall = new ParallelFirewallPools(numThreads-1, canSend, canReceiveFrom);
 
 		// Process config packets first.
 		int A = (int) Math.pow(numLogAddress, 1.5);
