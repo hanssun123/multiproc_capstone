@@ -11,15 +11,15 @@ private NonBlockingHashMap<K, V> internalData;
 		internalData = new NonBlockingHashMap<>();
 	}
 	
-	public synchronized V put(K key, V value) {
+	public V put(K key, V value) {
 		return internalData.put(key, value);
 	}
 	
-	public synchronized V get(K key) {
+	public V get(K key) {
 		return internalData.get(key);
 	}
 	
-	public synchronized boolean containsKey(K key) {
+	public boolean containsKey(K key) {
 		return internalData.containsKey(key);
 	}
 	

@@ -10,11 +10,21 @@ import java.util.concurrent.TimeUnit;
 
 import map.MyMap;
 
+import high_scale_lib.NonBlockingHashMap;
+
 public class ParallelFirewallPools {
 
 	// Permissions.	
 	MyMap<Integer, Boolean> canSend;
 	MyMap<Integer, Set<Integer>> canReceiveFrom;
+	
+//	NonBlockingHashMap<Integer, Boolean> canSend;
+//	NonBlockingHashMap<Integer, Set<Integer>> canReceiveFrom;
+	
+//	bookMaps.StripedHashMap<Integer, Boolean> canSend;
+//	bookMaps.StripedHashMap<Integer, Set<Integer>> canReceiveFrom;
+	
+	
 
 	// Thread pools.
 	private ExecutorService configPool;
@@ -29,7 +39,11 @@ public class ParallelFirewallPools {
 		// Set permissions:
 		this.canSend = canSend; // PNG.
 		this.canReceiveFrom = canReceiveFrom; // R.
-
+//		this.canSend = new NonBlockingHashMap<>();
+//		this.canReceiveFrom = new NonBlockingHashMap<>();
+//		this.canSend = new bookMaps.StripedHashMap<>(1000);
+//		this.canReceiveFrom = new bookMaps.StripedHashMap<>(1000);
+		
 		// Instantiate thread pools:
 		this.configPool = Executors.newFixedThreadPool(numThreads);
 		this.dataPool = Executors.newFixedThreadPool(numThreads);

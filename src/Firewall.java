@@ -7,24 +7,47 @@ import java.util.List;
 
 class Main {
 	public static void main(String[] args) {		
+		
+		/*
+		ParallelFirewallTester parallelTester = new ParallelFirewallTester();
+		SerialFirewallTester serialTester = new SerialFirewallTester();
+		PacketGenerator currGenerator;
+		MyMap<Integer, Boolean> currCanSend;
+		MyMap<Integer, Set<Integer>> currCanRecvFrom;
+		currGenerator = generatePG(3);
+		currCanSend = generateCanSend(1);
+		currCanRecvFrom = generateCanReceiveFrom(1);
+		parallelTester.test(10000000, 4, currCanSend, currCanRecvFrom, currGenerator);
+		currGenerator = generatePG(3);
+		serialTester.test(10000000, currGenerator);
+		*/
+		
+		
 		StopWatch stopwatch = new StopWatch();
 		stopwatch.startTimer();
 		
-		int numPG = 8;
+		// int numPG = 8;
 		int numThreadTypes = 5; // 1, 2, 4, 8, 16
 		int numMaps = 6; // Change to 6.
-		int numPackets = 10000;
-		int numTrials = 10;
+		int numPackets = 1000000;
+		int numTrials = 5;
 		
 		SerialFirewallTester serialTester = new SerialFirewallTester();
 		ParallelFirewallTester parallelTester = new ParallelFirewallTester();
 		
+		PacketGenerator currGenerator;
+		MyMap<Integer, Boolean> currCanSend;
+		MyMap<Integer, Set<Integer>> currCanRecvFrom;
+		
 		// List of rows to print to file later on.
 		List<String> rows = new ArrayList<>();
 		rows.add(getHeader());
-
-		for (int pgIter = 0; pgIter < numPG; pgIter++) {
+		
+		int pgIter = 1;
+		//for (int pgIter = 0; pgIter < numPG; pgIter++) {
 			for (int mapIter = 0; mapIter < numMaps; mapIter++) {
+				System.out.println(mapIter + " of " + numMaps);
+				
 				if(mapIter == numMaps-1) {
 					// Run sequential
 					long totalTime = 0;
@@ -41,12 +64,15 @@ class Main {
 					for (int numThreadsIter = 0; numThreadsIter < numThreadTypes; numThreadsIter++) {
 						long totalTime = 0;
 						for (int trial = 0; trial < numTrials; trial++) {
+							currGenerator = generatePG(pgIter);
+							currCanSend = generateCanSend(mapIter);
+							currCanRecvFrom = generateCanReceiveFrom(mapIter);
 							// Instantiate firewalls.
 							long time = parallelTester.test(numPackets,
 															getNumThreads(numThreadsIter), 
-															generateCanSend(mapIter),
-															generateCanReceiveFrom(mapIter),
-															generatePG(pgIter));
+															currCanSend,
+															currCanRecvFrom,
+															currGenerator);
 							totalTime += time;
 						}
 						// Finished trial.
@@ -56,11 +82,11 @@ class Main {
 				}
 			}
 			rows.add("-,-,-,-,- \n");
-		}
+		//}
 
 		try {
 
-			FileWriter fileWriter = new FileWriter("/Users/tristinfalk-lefay/Desktop/testfile.csv");
+			FileWriter fileWriter = new FileWriter("/Users/tristinfalk-lefay/Desktop/testfile" + pgIter + ".csv");
 			PrintWriter printWriter = new PrintWriter(fileWriter);
 			for(String row : rows) {
 				printWriter.print(row);
@@ -139,21 +165,21 @@ class Main {
 	private static PacketGenerator generatePG(int iteration) {
 		switch (iteration) {
 		case 0:
-			return new PacketGenerator(11, 12, 5, 1, 3, 3, 3822, 0.24, 0.04, 0.96);
+			return new PacketGenerator(4, 12, 5, 1, 3, 3, 6000, 0.24, 0.04, 0.96);
 		case 1:
-			return new PacketGenerator(12, 10, 1, 3, 3, 1, 2644, 0.11, 0.09, 0.92);
+			return new PacketGenerator(4, 10, 1, 3, 3, 1, 4000, 0.11, 0.09, 0.92);
 		case 2:
-			return new PacketGenerator(12, 10, 4, 3, 6, 2, 1304, 0.1, 0.03, 0.9);
+			return new PacketGenerator(4, 10, 4, 3, 6, 2, 5000, 0.1, 0.03, 0.9);
 		case 3:
-			return new PacketGenerator(14, 10, 5, 5, 6, 2, 315, 0.08, 0.05, 0.9);
+			return new PacketGenerator(4, 10, 5, 5, 6, 2, 1000, 0.08, 0.05, 0.9);
 		case 4:
-			return new PacketGenerator(15, 14, 9, 16, 7, 10, 4007, 0.02, 0.1, 0.84);
+			return new PacketGenerator(5, 14, 9, 16, 7, 10, 8000, 0.02, 0.1, 0.84);
 		case 5:
-			return new PacketGenerator(15, 15, 9, 10, 9, 9, 7125, 0.01, 0.2, 0.77);
+			return new PacketGenerator(5, 15, 9, 10, 9, 9, 10000, 0.01, 0.2, 0.77);
 		case 6:
-			return new PacketGenerator(15, 15, 10, 13, 8, 10, 5328, 0.04, 0.18, 0.8);
+			return new PacketGenerator(5, 15, 10, 13, 8, 10, 9000, 0.04, 0.18, 0.8);
 		case 7:
-			return new PacketGenerator(16, 14, 15, 12, 9, 5, 8840, 0.04, 0.19, 0.76);
+			return new PacketGenerator(6, 14, 15, 12, 9, 5, 12000, 0.04, 0.19, 0.76);
 		default:
 			// Do nothing;
 		}
@@ -183,18 +209,21 @@ class SerialFirewallTester {
 		System.out.println("Running Serial Firewall Tester");
 		StopWatch stopwatch = new StopWatch();
 		stopwatch.startTimer();
+		
 
 		SerialFirewall firewall = new SerialFirewall();
 
 		// Process config packets first.
-		int numLogAddress = 4;
+		int numLogAddress = 6;
 		int A = (int) Math.pow(numLogAddress, 1.5);
 
+		
 		for (int i = 0; i < A; i++) {
 			Packet pkt = gen.getConfigPacket();
 			firewall.handlePacket(pkt);
 		}
-
+		
+		
 		for (int i = 0; i < numPackets; i++) {
 			Packet pkt = gen.getPacket();
 			firewall.handlePacket(pkt);
@@ -213,7 +242,7 @@ class ParallelFirewallTester {
 		StopWatch stopwatch = new StopWatch();
 		stopwatch.startTimer();
 
-		int numLogAddress = 4;
+		int numLogAddress = 6;
 		ParallelFirewallPools firewall = new ParallelFirewallPools(numThreads, canSend, canReceiveFrom);
 
 		// Process config packets first.
@@ -223,25 +252,17 @@ class ParallelFirewallTester {
 			Packet pkt = gen.getConfigPacket();
 			firewall.handlePacket(pkt);
 		}
-
-		StopWatch loopWatch = new StopWatch();
-		loopWatch.startTimer();
+		
+		
 		for (int i = 0; i < numPackets; i++) {
 			Packet pkt = gen.getPacket();
 			firewall.handlePacket(pkt);
 		}
-		loopWatch.stopTimer();
-		// System.out.println("Time to distribute work: " + loopWatch.getElapsedTime());
-
-		StopWatch shutwatch = new StopWatch();
-		shutwatch.startTimer();
-		// System.out.println("Shutting down...");
-		firewall.shutdown();
-		// System.out.println("Shut down.");
-		shutwatch.stopTimer();
-		// System.out.println("Time to shutdown: " + shutwatch.getElapsedTime());
+		
+		
 
 		stopwatch.stopTimer();
+		firewall.shutdown();
 		System.out.println("Total time to process: " + stopwatch.getElapsedTime());
 		return stopwatch.getElapsedTime();
 	}
