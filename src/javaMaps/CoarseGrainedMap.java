@@ -9,8 +9,8 @@ public class CoarseGrainedMap<K, V> implements MyMap<K, V> {
 
 	private Map<K, V> internalData;
 	
-	public CoarseGrainedMap() {
-		internalData = new HashMap<>();
+	public CoarseGrainedMap(int cap) {
+		internalData = new HashMap<>(cap);
 	}
 	
 	public synchronized V put(K key, V value) {
