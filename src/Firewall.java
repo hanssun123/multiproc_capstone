@@ -11,10 +11,10 @@ class Main {
 		StopWatch stopwatch = new StopWatch();
 		stopwatch.startTimer();
 
-		// int numPG = 8;
+		int numPG = 8;
 		int numThreadTypes = 5; // 1, 2, 4, 8, 16
 		int numMaps = 6; // Change to 6.
-		int numPackets = 1000000;
+		int numPackets = 10000000;
 		int numTrials = 5;
 
 		SerialFirewallTester serialTester = new SerialFirewallTester();
@@ -28,8 +28,8 @@ class Main {
 		List<String> rows = new ArrayList<>();
 		rows.add(getHeader());
 
-		int pgIter = 3;
-		// for (int pgIter = 0; pgIter < numPG; pgIter++) {
+		// int pgIter = 3;
+		for (int pgIter = 0; pgIter < numPG; pgIter++) {
 		for (int mapIter = 0; mapIter < numMaps; mapIter++) {
 			System.out.println(mapIter + 1 + " of " + numMaps);
 
@@ -68,11 +68,11 @@ class Main {
 			}
 		}
 		rows.add("-,-,-,-,- \n");
-		// }
+		}
 
 		try {
 			String currDir = new File(".").getCanonicalPath();
-			FileWriter fileWriter = new FileWriter(currDir + "/data/testfile222" + pgIter + ".csv");
+			FileWriter fileWriter = new FileWriter(currDir + "/data/testfileAll.csv");
 			PrintWriter printWriter = new PrintWriter(fileWriter);
 			for (String row : rows) {
 				printWriter.print(row);
