@@ -28,7 +28,7 @@ class Main {
 		List<String> rows = new ArrayList<>();
 		rows.add(getHeader());
 
-		int pgIter = 7;
+		int pgIter = 3;
 		// for (int pgIter = 0; pgIter < numPG; pgIter++) {
 		for (int mapIter = 0; mapIter < numMaps; mapIter++) {
 			System.out.println(mapIter + 1 + " of " + numMaps);
@@ -72,7 +72,7 @@ class Main {
 
 		try {
 			String currDir = new File(".").getCanonicalPath();
-			FileWriter fileWriter = new FileWriter(currDir + "/data/testfile" + pgIter + ".csv");
+			FileWriter fileWriter = new FileWriter(currDir + "/data/testfile222" + pgIter + ".csv");
 			PrintWriter printWriter = new PrintWriter(fileWriter);
 			for (String row : rows) {
 				printWriter.print(row);
@@ -153,21 +153,21 @@ class Main {
 	private static PacketGenerator generatePG(int iteration) {
 		switch (iteration) {
 		case 0:
-			return new PacketGenerator(4, 12, 5, 1, 3, 3, 10000, 0.24, 0.04, 0.96);
+			return new PacketGenerator(6, 12, 5, 1, 3, 3, 18000, 0.24, 0.04, 0.96);
 		case 1:
-			return new PacketGenerator(12, 10, 1, 3, 3, 1, 4000, 0.11, 0.09, 0.92);
+			return new PacketGenerator(6, 10, 1, 3, 3, 1, 12000, 0.11, 0.09, 0.92);
 		case 2:
-			return new PacketGenerator(12, 10, 4, 3, 6, 2, 5000, 0.1, 0.03, 0.9);
+			return new PacketGenerator(6, 10, 4, 3, 6, 2, 13000, 0.1, 0.03, 0.9);
 		case 3:
-			return new PacketGenerator(14, 10, 5, 5, 6, 2, 1000, 0.08, 0.05, 0.9);
+			return new PacketGenerator(6, 10, 5, 5, 6, 2, 9000, 0.08, 0.05, 0.9);
 		case 4:
-			return new PacketGenerator(15, 14, 9, 16, 7, 10, 8000, 0.02, 0.1, 0.84);
+			return new PacketGenerator(6, 14, 9, 16, 7, 10, 16000, 0.02, 0.1, 0.84);
 		case 5:
-			return new PacketGenerator(15, 15, 9, 10, 9, 9, 10000, 0.01, 0.2, 0.77);
+			return new PacketGenerator(6, 15, 9, 10, 9, 9, 18000, 0.01, 0.2, 0.77);
 		case 6:
-			return new PacketGenerator(15, 15, 10, 13, 8, 10, 9000, 0.04, 0.18, 0.8);
+			return new PacketGenerator(6, 15, 10, 13, 8, 10, 17000, 0.04, 0.18, 0.8);
 		case 7:
-			return new PacketGenerator(4, 14, 15, 12, 9, 5, 12000, 0.04, 0.19, 0.76);
+			return new PacketGenerator(6, 14, 15, 12, 9, 5, 20000, 0.04, 0.19, 0.76);
 		default:
 			// Do nothing;
 		}
